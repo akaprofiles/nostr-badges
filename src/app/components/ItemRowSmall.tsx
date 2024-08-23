@@ -10,7 +10,7 @@ import Typography from "@mui/material/Typography";
 
 import { shortenDesc } from "@/app/utils/utils";
 
-type WidthOption = "normal" | "wide";
+type WidthOption = "normal" | "wide" | "full";
 type HeightOption = "normal" | "short";
 
 export type Item = {
@@ -26,13 +26,24 @@ export type Item = {
 export const ItemRowSmall = (item: Item) => {
   const { id, name, description, image, sx, widthOption, heightOption } = item;
 
-  const textWidth = widthOption && widthOption == "wide" ? "220px" : "180px";
+  let textWidth = "180px";
+  switch (widthOption) {
+    case "wide":
+      textWidth = "220px";
+      break;
+    case "full":
+      textWidth = "100%";
+      break;
+  }
+
   const height = heightOption && heightOption == "short" ? "44px" : "80px";
-  let truncateLength = 50;
-  if (heightOption == "short") {
-    truncateLength = widthOption && widthOption == "wide" ? 30 : 20;
-  } else {
-    truncateLength = widthOption && widthOption == "wide" ? 70 : 50;
+  let truncateLength = 150;
+  if (widthOption && widthOption != "full") {
+    if (heightOption == "short") {
+      truncateLength = widthOption == "wide" ? 30 : 20;
+    } else {
+      truncateLength = widthOption == "wide" ? 70 : 50;
+    }
   }
 
   const shortDesc = shortenDesc(description, truncateLength);
