@@ -4,6 +4,7 @@ import {
   AddResult,
   loadItems,
   loadItem,
+  loadBadgeAwardByBadge as fsLoadBadgeAwardByBadge,
   saveItem,
   deleteItem,
   addItem,
@@ -62,6 +63,13 @@ export const loadBadgeAward = async (
   colPath: string = "badgeawards"
 ): Promise<BadgeAward | undefined> => {
   return loadItem<BadgeAward>(id, colPath);
+};
+
+export const loadBadgeAwardByBadge = async (
+  awardedTo: string,
+  badgeId: string
+) => {
+  return fsLoadBadgeAwardByBadge(awardedTo, badgeId);
 };
 
 export const saveBadgeAward = async (

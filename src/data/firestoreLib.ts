@@ -23,6 +23,7 @@ import {
 import { CloudFile, urlToCloudFile } from "./cloudFile";
 import debug from "debug";
 import getErrorMessage from "@/errors";
+import { BadgeAward } from "./badgeAwardLib";
 
 const contextDebug = debug("aka:firestorelib");
 
@@ -211,6 +212,30 @@ export const loadItem = async <Type>(
     if (colPath != "keypairs")
       contextDebug(`loadItem: ${JSON.stringify(docSnap.data())}`);
     return docSnap.data() as Type;
+  }
+
+  return undefined;
+};
+
+// returns the most recent badge award for a badge
+export const loadBadgeAwardByBadge = async (
+  awardedTo: string,
+  badgeId: string
+) => {
+  const colRef = collection(db, "badgeawards");
+  const q = query(
+    colRef,
+    where("awardedTo", "==", awardedTo),
+    where("badge", "==", badgeId),
+    orderBy("created", "desc"),
+    limit(1)
+  );
+
+  const querySnapshot = await getDocs(q);
+  if (querySnapshot.docs.length > 0) {
+    const doc = querySnapshot.docs[0];
+    const award = doc.data() as BadgeAward;
+    return { id: doc.id, badgeAward: award };
   }
 
   return undefined;

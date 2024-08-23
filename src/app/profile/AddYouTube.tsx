@@ -162,7 +162,7 @@ const AddYouTube: React.FC<AddYouTubeProps> = ({ npub, open, onClose }) => {
         </Box>
         <Box maxWidth="300px">
           <Typography variant="body1" paddingBottom={1}>
-            2. Add this text to the channel's description
+            2. Add this text to the channel&aps;s description
           </Typography>
           <CopiableText initValue={npub} variant="subtitle1"></CopiableText>
         </Box>

@@ -5,8 +5,10 @@ import {
   getDocs,
   query,
   where,
+  orderBy,
 } from "firebase/firestore/lite";
-import { BadgeAward } from "./badgeAwardLib";
+import { Badge, loadBadge } from "./badgeLib";
+import { BadgeAward, loadBadgeAwardByBadge } from "./badgeAwardLib";
 
 const db = getFirestore();
 
@@ -52,10 +54,11 @@ export const loadAkaBadge = async <Type>(
 export const loadAkaBadgeAwards = async (
   category: string,
   awardedTo: string
-): Promise<Record<string, BadgeAward>> => {
-  let colRef = collection(db, "akabadges");
-  let q = query(colRef, where("category", "==", category));
-  let querySnapshot = await getDocs(q);
+): Promise<{ badge: Badge; badgeAward: BadgeAward }[]> => {
+  // load all akabadges for category
+  const colRef = collection(db, "akabadges");
+  const q = query(colRef, where("category", "==", category), orderBy("sort"));
+  const querySnapshot = await getDocs(q);
 
   const akaBadges: AkaBadge[] = [];
   querySnapshot.docs.forEach((doc) => {
@@ -71,24 +74,57 @@ export const loadAkaBadgeAwards = async (
 
   console.log(`akaBadges: ${JSON.stringify(akaBadges)}`);
 
-  // load badge awards for uid matching doc.id (badge id)
-  const badgeIds = akaBadges.map((value: AkaBadge) => {
-    return value.id;
+  // load all badges and award matching akabadges
+  const badgePromises: Record<string, Promise<Badge | undefined>> = {};
+  const awardPromises: Record<
+    string,
+    Promise<
+      | {
+          id: string;
+          badgeAward: BadgeAward;
+        }
+      | undefined
+    >
+  > = {};
+  for (let i = 0; i < akaBadges.length; i++) {
+    const badgeId = akaBadges[i].id;
+    badgePromises[badgeId] = loadBadge(badgeId);
+    awardPromises[badgeId] = loadBadgeAwardByBadge(awardedTo, badgeId);
+  }
+
+  // Wait for all badge promises to resolve
+  const badges = await Promise.all(Object.values(badgePromises));
+
+  // Wait for all award promises to resolve
+  const awards = await Promise.all(Object.values(awardPromises));
+
+  // join results
+  // Convert resolved arrays back to objects keyed by ID for easy lookup
+  const badgeResults = Object.keys(badgePromises).reduce((acc, id, index) => {
+    acc[id] = badges[index];
+    return acc;
+  }, {} as Record<string, Badge | undefined>);
+
+  const awardResults = Object.keys(awardPromises).reduce((acc, id, index) => {
+    acc[id] = awards[index]?.badgeAward;
+    return acc;
+  }, {} as Record<string, BadgeAward | undefined>);
+
+  // Join results ensuring the order matches akaBadges
+  const list: { badge: Badge; badgeAward: BadgeAward }[] = [];
+
+  akaBadges.forEach((akaBadge) => {
+    const badgeId = akaBadge.id;
+    const badge = badgeResults[badgeId];
+    const badgeAward = awardResults[badgeId];
+
+    if (badge && badgeAward) {
+      list.push({
+        badge,
+        badgeAward,
+      });
+    }
   });
 
-  colRef = collection(db, "badgeawards");
-  q = query(
-    colRef,
-    where("awardedTo", "==", awardedTo),
-    where("badge", "in", badgeIds)
-  );
-  querySnapshot = await getDocs(q);
-
-  const awards: Record<string, BadgeAward> = {};
-  querySnapshot.docs.forEach((doc) => {
-    awards[doc.id] = doc.data() as BadgeAward;
-  });
-
-  console.log(`badgeAwards: ${JSON.stringify(awards)}`);
-  return awards;
+  return list;
 };

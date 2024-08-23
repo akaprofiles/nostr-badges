@@ -19,13 +19,10 @@ import { Section } from "./edit/Section";
 import { Add } from "./Add";
 import { ProfileDisplay } from "./ProfileDisplay";
 import { BadgesDisplay } from "./BadgesDisplay";
-import {
-  Platforms,
-  SocialMediaFields,
-  getEmptySocialMediaFields,
-} from "@/data/socialMediaFields";
+import { Platforms } from "@/data/socialMediaFields";
 import { SocialsButton } from "./SocialsButton";
-import { SocialMediaBadge } from "./SocialMediaBadge";
+import { Badge } from "@/data/badgeLib";
+import { BadgeAwardItem } from "./BadgeAwardItem";
 
 const AddYouTube = dynamic(() => import("./AddYouTube"));
 
@@ -39,7 +36,9 @@ export default function ProfilePage() {
 
   const [showSocials, setShowSocials] = useState(false);
   const [openYouTube, setOpenYouTube] = useState(false);
-  const [socials, setSocials] = useState([] as SocialMediaFields[]);
+  const [socials, setSocials] = useState(
+    [] as { badge: Badge; badgeAward: BadgeAward }[]
+  );
 
   const handleEdit = (id: string) => {
     router.push("/profile/edit");
@@ -55,19 +54,8 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const badgeAwards = await loadAkaBadgeAwards("social", profile.uid);
-      const socials: SocialMediaFields[] = [];
-      Object.keys(badgeAwards).forEach((key) => {
-        const badgeAward = badgeAwards[key];
-        console.log(`badgeAward: ${JSON.stringify(badgeAward)}`);
-        if (badgeAward.data) {
-          let fields = getEmptySocialMediaFields();
-          fields = { ...fields, ...badgeAward.data };
-          socials.push(fields);
-        }
-      });
-      console.log(`socials: ${JSON.stringify(socials)}`);
-      setSocials(socials);
+      const badgesWithAwards = await loadAkaBadgeAwards("social", profile.uid);
+      setSocials(badgesWithAwards);
     };
 
     if (profile.uid != "") {
@@ -111,8 +99,13 @@ export default function ProfilePage() {
             <Section id="socials">
               <Box padding={1}>
                 <Typography variant="h6">Social Media Accounts</Typography>
-                {socials.map((fields, index) => (
-                  <SocialMediaBadge key={index} {...fields} />
+                {socials.map((data, index) => (
+                  <BadgeAwardItem
+                    key={index}
+                    id={index.toString()}
+                    badge={data.badge}
+                    badgeAward={data.badgeAward}
+                  />
                 ))}
 
                 <Add
