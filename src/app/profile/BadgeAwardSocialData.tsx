@@ -1,4 +1,6 @@
-import { getEmptySocialMediaFields } from "@/data/socialMediaFields";
+import { useState, useEffect } from "react";
+import getChannel from "@/google-api/getChannel";
+import { Platforms, getEmptySocialMediaFields } from "@/data/socialMediaFields";
 
 import Box from "@mui/material/Box";
 import CardMedia from "@mui/material/CardMedia";
@@ -7,21 +9,53 @@ import Typography from "@mui/material/Typography";
 
 import { DotSeparatedText } from "./DotSeperatedText";
 
-import { ItemRowSmall } from "../components/ItemRowSmall";
 export const BadgeAwardSocialData = (props: { data: object }) => {
   const width = "48px";
   const height = "48px";
 
   const { data } = props;
+  const [avatarUrl, setAvatarUrl] = useState("/default/profile.png");
+  const [metaItems, setMetaItems] = useState([] as string[]);
+
   let socialFields = getEmptySocialMediaFields();
   socialFields = { ...socialFields, ...data };
 
-  const metaItems: string[] = [];
-  metaItems.push(socialFields.identity);
-  if (socialFields.followers > 0)
-    metaItems.push(`${socialFields.followers} followers`);
-  if (socialFields.views > 0) metaItems.push(`${socialFields.views} views`);
-  if (socialFields.items > 0) metaItems.push(`${socialFields.items} items`);
+  useEffect(() => {
+    const updateYouTube = async () => {
+      const handle = socialFields.identity;
+      const channel = await getChannel(handle);
+
+      if (channel.fields.avatar.url) {
+        setAvatarUrl(channel.fields.avatar.url);
+      }
+
+      const metaItems: string[] = [];
+      metaItems.push(socialFields.identity);
+      if (socialFields.followers > 0)
+        metaItems.push(`${socialFields.followers} subscribers`);
+      if (socialFields.views > 0) metaItems.push(`${socialFields.views} views`);
+      if (socialFields.items > 0)
+        metaItems.push(`${socialFields.items} videos`);
+      setMetaItems(metaItems);
+    };
+
+    switch (socialFields.platform) {
+      case Platforms.YouTube:
+        updateYouTube();
+        break;
+      default:
+        setAvatarUrl(socialFields.avatar.url);
+
+        metaItems.push(socialFields.identity);
+        if (socialFields.followers > 0)
+          metaItems.push(`${socialFields.followers} followers`);
+        if (socialFields.views > 0)
+          metaItems.push(`${socialFields.views} views`);
+        if (socialFields.items > 0)
+          metaItems.push(`${socialFields.items} items`);
+        setMetaItems(metaItems);
+    }
+  }, [socialFields.platform]);
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -40,7 +74,7 @@ export const BadgeAwardSocialData = (props: { data: object }) => {
           <CardMedia
             component="img"
             sx={{ width: height, height: height, objectFit: "cover" }}
-            image={socialFields.avatar.url}
+            image={avatarUrl}
             alt="avatar image"
           />
         )}
