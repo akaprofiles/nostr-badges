@@ -1,28 +1,23 @@
 "use server";
 
+import {
+  Platforms,
+  SocialMediaFields,
+  getEmptySocialMediaFields,
+} from "@/data/socialMediaFields";
 const apiKey = process.env.YOUTUBE_API_KEY;
 
 interface GetChannelResult {
   success: boolean;
   error: string;
-  title: string;
-  description: string;
-  customUrl: string;
-  subscriberCount: number;
-  videoCount: number;
-  viewCount: number;
+  fields: SocialMediaFields;
 }
 
 const getChannel = async (handle: string): Promise<GetChannelResult> => {
   const result = {
     success: false,
     error: "",
-    title: "",
-    description: "",
-    customUrl: "",
-    subscriberCount: 0,
-    videoCount: 0,
-    viewCount: 0,
+    fields: getEmptySocialMediaFields(),
   };
 
   if (!handle || Array.isArray(handle)) {
@@ -46,13 +41,18 @@ const getChannel = async (handle: string): Promise<GetChannelResult> => {
     const snippet = channelData.items[0].snippet;
     const statistics = channelData.items[0].statistics;
     result.success = true;
-    result.title = snippet.title;
-    result.description = snippet.description as string;
-    result.customUrl = snippet.customUrl;
+
+    result.fields.platform = Platforms.YouTube;
+    result.fields.identity = handle;
+    result.fields.title = snippet.title;
+    result.fields.description = snippet.description as string;
+    result.fields.url = snippet.customUrl;
+    result.fields.avatar = snippet.thumbnails.default;
+
     if (statistics) {
-      result.subscriberCount = statistics.subscriberCount;
-      result.videoCount = statistics.videoCount;
-      result.viewCount = statistics.viewCount;
+      result.fields.followers = statistics.subscriberCount;
+      result.fields.items = statistics.videoCount;
+      result.fields.views = statistics.viewCount;
     }
 
     console.log(snippet);

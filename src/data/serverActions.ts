@@ -141,6 +141,24 @@ export const getProfile = async (
   return res.json();
 };
 
+export async function getRelays(
+  uid: string
+): Promise<{ relays: string[]; defaultRelays: boolean }> {
+  const authorization = `Bearer ${process.env.AKA_API_TOKEN}`;
+
+  const url = `https://getrelays-k5ca2jsy4q-uc.a.run.app/aka-profiles/us-central1/getRelays?uid=${uid}`;
+  const res = await fetch(url, {
+    headers: { authorization },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    // This will activate the closest `error.js` Error Boundary
+    throw new Error("Failed to fetch data");
+  }
+  return res.json();
+}
+
 export async function createBadgeSession(
   badgeId: string,
   state: string,
@@ -260,20 +278,34 @@ export async function sessionCreateBadgeAwards(
   return true;
 }
 
-export async function getRelays(
-  uid: string
-): Promise<{ relays: string[]; defaultRelays: boolean }> {
-  const authorization = `Bearer ${process.env.AKA_API_TOKEN}`;
+export async function createBadgeAward(
+  id: string,
+  badgeId: string,
+  awardedTo: string,
+  publickey: string,
+  data?: object
+) {
+  const url = `https://createBadgeAward-k5ca2jsy4q-uc.a.run.app/aka-profiles/us-central1/createBadgeAward`;
 
-  const url = `https://getrelays-k5ca2jsy4q-uc.a.run.app/aka-profiles/us-central1/getRelays?uid=${uid}`;
-  const res = await fetch(url, {
-    headers: { authorization },
-    cache: "no-store",
+  const postData = {
+    id,
+    badgeId,
+    awardedTo,
+    publickey,
+    ...(data && { data }),
+  };
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: getAkaApiPostHeader(),
+    body: JSON.stringify(postData),
+    cache: "no-cache",
   });
 
-  if (!res.ok) {
+  if (!response.ok) {
     // This will activate the closest `error.js` Error Boundary
-    throw new Error("Failed to fetch data");
+    throw new Error("Failed to post data");
   }
-  return res.json();
+
+  return true;
 }

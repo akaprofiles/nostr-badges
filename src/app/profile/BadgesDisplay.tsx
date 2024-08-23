@@ -58,7 +58,7 @@ export const BadgesDisplay = ({
   }, [uid, pubkey]);
 
   return (
-    <Stack direction="row" flexWrap="wrap" rowGap={2} columnGap={2}>
+    <Stack direction="column" flexWrap="wrap" rowGap={2}>
       {Object.entries(awards).map(([id, badgeAward]) => {
         const badge = badges[badgeAward.badge];
         const created = badgeAward.created;

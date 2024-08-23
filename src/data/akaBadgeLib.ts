@@ -1,5 +1,3 @@
-import getErrorMessage from "@/errors";
-import { loadItem } from "./firestoreLib";
 import {
   getFirestore,
   doc,
@@ -8,15 +6,9 @@ import {
   query,
   where,
 } from "firebase/firestore/lite";
+import { BadgeAward } from "./badgeAwardLib";
 
 const db = getFirestore();
-
-export enum Socials {
-  YouTube = "youtube",
-  Twitter = "twitter",
-  Facebook = "facebook",
-  Instagram = "instagram",
-}
 
 export type AkaBadge = {
   id: string;
@@ -36,7 +28,7 @@ export const getEmptyAkaBadge = (): AkaBadge => {
   return { ...emptyAkaBadge };
 };
 
-// must match uid and publickey
+// return id of aka badge
 export const loadAkaBadge = async <Type>(
   name: string
 ): Promise<AkaBadge | undefined> => {
@@ -54,4 +46,49 @@ export const loadAkaBadge = async <Type>(
   badge.id = querySnapshot.docs[0].id;
   badge = { ...badge, ...loadedBadge };
   return badge;
+};
+
+// loads all aka badges for given uid
+export const loadAkaBadgeAwards = async (
+  category: string,
+  awardedTo: string
+): Promise<Record<string, BadgeAward>> => {
+  let colRef = collection(db, "akabadges");
+  let q = query(colRef, where("category", "==", category));
+  let querySnapshot = await getDocs(q);
+
+  const akaBadges: AkaBadge[] = [];
+  querySnapshot.docs.forEach((doc) => {
+    const data = doc.data();
+    const akaBadge = {
+      id: doc.id,
+      name: data.name,
+      category: data.category,
+      sort: data.sort,
+    };
+    akaBadges.push(akaBadge);
+  });
+
+  console.log(`akaBadges: ${JSON.stringify(akaBadges)}`);
+
+  // load badge awards for uid matching doc.id (badge id)
+  const badgeIds = akaBadges.map((value: AkaBadge) => {
+    return value.id;
+  });
+
+  colRef = collection(db, "badgeawards");
+  q = query(
+    colRef,
+    where("awardedTo", "==", awardedTo),
+    where("badge", "in", badgeIds)
+  );
+  querySnapshot = await getDocs(q);
+
+  const awards: Record<string, BadgeAward> = {};
+  querySnapshot.docs.forEach((doc) => {
+    awards[doc.id] = doc.data() as BadgeAward;
+  });
+
+  console.log(`badgeAwards: ${JSON.stringify(awards)}`);
+  return awards;
 };

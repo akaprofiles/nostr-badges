@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import * as nip19 from "@/nostr-tools/nip19";
 import theme from "@/app/components/ThemeRegistry/theme";
 import { useRouter } from "next/navigation";
 import { useAccountContext } from "@/context/AccountContext";
+import { BadgeAward } from "@/data/badgeAwardLib";
+import { loadAkaBadgeAwards } from "@/data/akaBadgeLib";
 
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
@@ -17,8 +19,13 @@ import { Section } from "./edit/Section";
 import { Add } from "./Add";
 import { ProfileDisplay } from "./ProfileDisplay";
 import { BadgesDisplay } from "./BadgesDisplay";
-import { Socials } from "@/data/akaBadgeLib";
+import {
+  Platforms,
+  SocialMediaFields,
+  getEmptySocialMediaFields,
+} from "@/data/socialMediaFields";
 import { SocialsButton } from "./SocialsButton";
+import { SocialMediaBadge } from "./SocialMediaBadge";
 
 const AddYouTube = dynamic(() => import("./AddYouTube"));
 
@@ -32,6 +39,7 @@ export default function ProfilePage() {
 
   const [showSocials, setShowSocials] = useState(false);
   const [openYouTube, setOpenYouTube] = useState(false);
+  const [socials, setSocials] = useState([] as SocialMediaFields[]);
 
   const handleEdit = (id: string) => {
     router.push("/profile/edit");
@@ -44,6 +52,28 @@ export default function ProfilePage() {
   const onYouTubeClose = () => {
     setOpenYouTube(false);
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const badgeAwards = await loadAkaBadgeAwards("social", profile.uid);
+      const socials: SocialMediaFields[] = [];
+      Object.keys(badgeAwards).forEach((key) => {
+        const badgeAward = badgeAwards[key];
+        console.log(`badgeAward: ${JSON.stringify(badgeAward)}`);
+        if (badgeAward.data) {
+          let fields = getEmptySocialMediaFields();
+          fields = { ...fields, ...badgeAward.data };
+          socials.push(fields);
+        }
+      });
+      console.log(`socials: ${JSON.stringify(socials)}`);
+      setSocials(socials);
+    };
+
+    if (profile.uid != "") {
+      fetchData();
+    }
+  }, [profile.uid]);
 
   return (
     <CommonLayout
@@ -81,6 +111,10 @@ export default function ProfilePage() {
             <Section id="socials">
               <Box padding={1}>
                 <Typography variant="h6">Social Media Accounts</Typography>
+                {socials.map((fields, index) => (
+                  <SocialMediaBadge key={index} {...fields} />
+                ))}
+
                 <Add
                   label="add account"
                   onClick={() => {
@@ -101,12 +135,12 @@ export default function ProfilePage() {
                       }}
                     >
                       <SocialsButton
-                        type={Socials.YouTube}
+                        type={Platforms.YouTube}
                         onClick={onYouTubeClick}
                       />
-                      <SocialsButton type={Socials.Twitter} />
-                      <SocialsButton type={Socials.Facebook} />
-                      <SocialsButton type={Socials.Instagram} />
+                      <SocialsButton type={Platforms.Twitter} />
+                      <SocialsButton type={Platforms.Facebook} />
+                      <SocialsButton type={Platforms.Instagram} />
                     </Box>
                   </Box>
                 )}

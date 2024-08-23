@@ -13,13 +13,11 @@ import { PrimaryButton } from "@/app/components/items/PrimaryButton";
 import { CopiableText } from "../components/items/CopiableText";
 
 import getChannel from "@/google-api/getChannel";
-import { Socials, loadAkaBadge } from "@/data/akaBadgeLib";
-import {
-  BadgeAward,
-  addBadgeAward,
-  getEmptyBadgeAward,
-} from "@/data/badgeAwardLib";
+import { loadAkaBadge } from "@/data/akaBadgeLib";
+import { Platforms } from "@/data/socialMediaFields";
 import { loadBadge } from "@/data/badgeLib";
+import { SocialMediaFields } from "@/data/socialMediaFields";
+import { createBadgeAward } from "@/data/serverActions";
 
 const helperText = "e.g. https://www.youtube.com/@handle";
 
@@ -84,14 +82,16 @@ const AddYouTube: React.FC<AddYouTubeProps> = ({ npub, open, onClose }) => {
       return;
     }
 
-    if (!result.description.includes(npub)) {
+    const fields = result.fields;
+
+    if (!fields.description.includes(npub)) {
       setVerifyError("npub text not found in description");
       setIsVerifying(false);
       return;
     }
 
     setStatus("saving...");
-    const youTubeBadge = await loadAkaBadge(Socials.YouTube);
+    const youTubeBadge = await loadAkaBadge(Platforms.YouTube);
     if (youTubeBadge == undefined) {
       setVerifyError("YouTube Channel Owner badge not found.");
       setIsVerifying(false);
@@ -105,30 +105,25 @@ const AddYouTube: React.FC<AddYouTubeProps> = ({ npub, open, onClose }) => {
       return;
     }
 
-    let channelUrl = result.customUrl;
+    let channelUrl = fields.url;
     if (channelUrl.startsWith("@")) {
-      channelUrl = "https://www.youtube.com/" + channelUrl;
+      fields.url = "https://www.youtube.com/" + fields.url;
     }
-    const data = {
-      title: result.title,
-      channelUrl: channelUrl,
-      subscriberCount: result.subscriberCount,
-      videoCount: result.videoCount,
-      viewCount: result.viewCount,
-    };
 
-    /*
-    badgeAward.uid = badge.uid;
-    badgeAward.badge = youTubeBadge.id;
-    badgeAward.awardedTo = accountContext.currentProfile.uid;
-    badgeAward.publickey = badge.publickey;
-    badgeAward.data = data;
-    */
+    const id = `${youTubeBadge.id}-${handle}`;
+    const createResult = await createBadgeAward(
+      id,
+      youTubeBadge.id,
+      accountContext.currentProfile.uid,
+      accountContext.currentProfile.publickey,
+      fields
+    );
 
     // to do: add createBadgeAward function to data/serverActions (like sessionCreateBadgeAwards)
     // create events like sessionContext.publishEvents();
 
-    console.log(youTubeBadge);
+    console.log(`createBadgeAward result: ${createResult}`);
+    setIsVerifying(false);
   };
 
   return (

@@ -1,17 +1,18 @@
 import React from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import { Socials } from "@/data/akaBadgeLib";
+import { Platforms } from "@/data/socialMediaFields";
 
-const SocialsName: { [key in Socials]: string } = {
-  [Socials.YouTube]: "YouTube",
-  [Socials.Twitter]: "coming soon...",
-  [Socials.Facebook]: "coming soon...",
-  [Socials.Instagram]: "coming soon...",
+const SocialsName: { [key in Platforms]: string } = {
+  [Platforms.YouTube]: "YouTube",
+  [Platforms.Twitter]: "coming soon...",
+  [Platforms.Facebook]: "coming soon...",
+  [Platforms.Instagram]: "coming soon...",
+  [Platforms.LinkedIn]: "coming soon...",
 };
 
 interface SocialsButtonProps {
-  type: Socials; // Object containing data
+  type: Platforms; // Object containing data
   onClick?: () => void;
 }
 
