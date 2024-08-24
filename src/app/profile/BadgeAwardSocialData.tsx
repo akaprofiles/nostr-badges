@@ -7,7 +7,7 @@ import CardMedia from "@mui/material/CardMedia";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 
-import { DotSeparatedText } from "./DotSeperatedText";
+import { abbreviateNum, DotSeparatedText } from "./DotSeperatedText";
 
 export const BadgeAwardSocialData = (props: { data: object }) => {
   const width = "48px";
@@ -32,10 +32,11 @@ export const BadgeAwardSocialData = (props: { data: object }) => {
       const metaItems: string[] = [];
       metaItems.push(socialFields.identity);
       if (socialFields.followers > 0)
-        metaItems.push(`${socialFields.followers} subscribers`);
-      if (socialFields.views > 0) metaItems.push(`${socialFields.views} views`);
+        metaItems.push(`${abbreviateNum(socialFields.followers)} subscribers`);
+      if (socialFields.views > 0)
+        metaItems.push(`${abbreviateNum(socialFields.views)} views`);
       if (socialFields.items > 0)
-        metaItems.push(`${socialFields.items} videos`);
+        metaItems.push(`${abbreviateNum(socialFields.items)} videos`);
       setMetaItems(metaItems);
     };
 
@@ -48,11 +49,11 @@ export const BadgeAwardSocialData = (props: { data: object }) => {
 
         metaItems.push(socialFields.identity);
         if (socialFields.followers > 0)
-          metaItems.push(`${socialFields.followers} followers`);
+          metaItems.push(`${abbreviateNum(socialFields.followers)} followers`);
         if (socialFields.views > 0)
-          metaItems.push(`${socialFields.views} views`);
+          metaItems.push(`${abbreviateNum(socialFields.views)} views`);
         if (socialFields.items > 0)
-          metaItems.push(`${socialFields.items} items`);
+          metaItems.push(`${abbreviateNum(socialFields.items)} items`);
         setMetaItems(metaItems);
     }
   }, [socialFields.platform]);
