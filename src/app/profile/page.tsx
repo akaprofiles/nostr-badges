@@ -10,6 +10,7 @@ import { BadgeAward } from "@/data/badgeAwardLib";
 import { loadAkaBadgeAwards } from "@/data/akaBadgeLib";
 
 import Box from "@mui/material/Box";
+import Card from "@mui/material/Card";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -96,54 +97,59 @@ export default function ProfilePage() {
             pt={1}
             spacing={2}
           >
-            <Section id="socials">
-              <Box padding={1}>
-                <Typography variant="h6">Social Media Accounts</Typography>
+            <Box padding={1}>
+              <Typography variant="h6" paddingBottom={1}>
+                Social Media Accounts
+              </Typography>
+              <Stack direction="column" flexWrap="wrap" rowGap={2}>
                 {socials.map((data, index) => (
-                  <BadgeAwardItem
-                    key={index}
-                    id={index.toString()}
-                    badge={data.badge}
-                    badgeAward={data.badgeAward}
-                  />
+                  <Card key={index}>
+                    <BadgeAwardItem
+                      key={index}
+                      id={index.toString()}
+                      badge={data.badge}
+                      badgeAward={data.badgeAward}
+                    />
+                  </Card>
                 ))}
+              </Stack>
 
-                <Add
-                  label="add account"
-                  onClick={() => {
-                    setShowSocials(!showSocials);
-                  }}
-                />
-                {showSocials && (
+              <Add
+                label="add account"
+                onClick={() => {
+                  setShowSocials(!showSocials);
+                }}
+              />
+              {showSocials && (
+                <Box
+                  id="socialButtons"
+                  sx={{ width: "auto", display: "inline-flex" }}
+                >
                   <Box
-                    id="socialButtons"
-                    sx={{ width: "auto", display: "inline-flex" }}
+                    sx={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      columnGap: 3,
+                      padding: 1,
+                    }}
                   >
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexWrap: "wrap",
-                        columnGap: 3,
-                        padding: 1,
-                      }}
-                    >
-                      <SocialsButton
-                        type={Platforms.YouTube}
-                        onClick={onYouTubeClick}
-                      />
-                      <SocialsButton type={Platforms.Twitter} />
-                      <SocialsButton type={Platforms.Facebook} />
-                      <SocialsButton type={Platforms.Instagram} />
-                    </Box>
+                    <SocialsButton
+                      type={Platforms.YouTube}
+                      onClick={onYouTubeClick}
+                    />
+                    <SocialsButton type={Platforms.Twitter} />
+                    <SocialsButton type={Platforms.Facebook} />
+                    <SocialsButton type={Platforms.Instagram} />
                   </Box>
-                )}
-                <AddYouTube
-                  npub={npub}
-                  open={openYouTube}
-                  onClose={onYouTubeClose}
-                />
-              </Box>
-            </Section>
+                </Box>
+              )}
+              <AddYouTube
+                npub={npub}
+                open={openYouTube}
+                onClose={onYouTubeClose}
+              />
+            </Box>
+
             <Box p={1}>
               <Typography variant="h6" paddingBottom={1}>
                 Badges
