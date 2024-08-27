@@ -225,6 +225,14 @@ function NostrProvider({ children }: NostrProviderProps) {
     event: NostrEvent,
     relays: string[]
   ): Promise<PublishedItem> => {
+    const testRelay = process.env.NEXT_PUBLIC_DEV_TEST_RELAY;
+
+    if (testRelay) {
+      relays.push(testRelay);
+      console.log(`Publishing to test relay: ${testRelay}`);
+      console.log(`Event: ${JSON.stringify(event)}`);
+    }
+
     const relayCount = relays.length;
     let publishedCount = 0;
     let error = "";
