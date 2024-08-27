@@ -229,9 +229,10 @@ function NostrProvider({ children }: NostrProviderProps) {
 
     if (testRelay) {
       relays.push(testRelay);
-      console.log(`Publishing to test relay: ${testRelay}`);
-      console.log(`Event: ${JSON.stringify(event)}`);
     }
+
+    contextDebug(`publishing to relays: ${JSON.stringify(relays)}`);
+    contextDebug(`event: ${JSON.stringify(event)}`);
 
     const relayCount = relays.length;
     let publishedCount = 0;
@@ -264,7 +265,7 @@ function NostrProvider({ children }: NostrProviderProps) {
         const result = await relaySet.publish(ndkEvent, 10000);
         publishedCount = result.size;
         contextDebug(
-          `publish eventId ${ndkEvent.id} result: ${JSON.stringify(result)}`
+          `published eventId ${ndkEvent.id} to ${publishedCount} / ${relayCount} relays`
         );
       } catch (error) {
         contextDebug(error);
