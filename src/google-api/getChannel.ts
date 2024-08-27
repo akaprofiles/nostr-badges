@@ -67,8 +67,6 @@ const getChannel = async (handle: string): Promise<GetChannelResult> => {
       result.fields.views = toNumber(statistics.viewCount);
     }
 
-    console.log(snippet);
-    console.log(result);
     return result;
   } catch (error) {
     result.success = false;

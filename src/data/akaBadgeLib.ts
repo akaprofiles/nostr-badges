@@ -72,8 +72,6 @@ export const loadAkaBadgeAwards = async (
     akaBadges.push(akaBadge);
   });
 
-  console.log(`akaBadges: ${JSON.stringify(akaBadges)}`);
-
   // load all badges and award matching akabadges
   const badgePromises: Record<string, Promise<Badge | undefined>> = {};
   const awardPromises: Record<

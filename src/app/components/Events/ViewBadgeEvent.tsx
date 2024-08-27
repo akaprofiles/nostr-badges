@@ -74,7 +74,6 @@ export const ViewBadgeEvent = async (props: {
   });
 
   await Promise.all(promises);
-  console.log(`profile ${JSON.stringify(profile)}`);
 
   return (
     <Stack

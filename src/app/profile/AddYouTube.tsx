@@ -149,12 +149,7 @@ const AddYouTube: React.FC<AddYouTubeProps> = ({ npub, open, onClose }) => {
 
     // publish events
     setStatus("publishing event...");
-    // to do: add createBadgeAward function to data/serverActions (like sessionCreateBadgeAwards)
-    // create events like sessionContext.publishEvents();
-
     const event = await createBadgeAwardEvent(id);
-    console.log(`createBadgeAward result: ${createResult}`);
-    console.log(`createBadgeAwardEvent result: ${JSON.stringify(event)}`);
 
     // publish to badge owner's relays
     let getRelaysResult = await getRelays(badge.uid);
