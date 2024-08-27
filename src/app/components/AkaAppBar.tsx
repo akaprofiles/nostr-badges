@@ -35,7 +35,9 @@ export const AkaAppBar = ({
   const profile = accountContext.currentProfile;
   const profiles = accountContext.state.profiles;
   const navItems = developerMode ? creatorNavItems : userNavItems;
-  const homePath = developerMode ? "/creator" : "/profile";
+  const homePath = developerMode
+    ? process.env.DEV_HOME_PAGE!
+    : process.env.USER_HOME_PAGE!;
 
   const { account } = accountContext.state;
 
@@ -95,7 +97,7 @@ export const AkaAppBar = ({
   const handleProfileClick = (profile: Profile) => {
     accountContext.selectCurrentProfile(profile.publickey);
     handleClose2();
-    router.push("/profile");
+    router.push(process.env.USER_HOME_PAGE!);
   };
 
   const handleClickLogout = () => {

@@ -230,7 +230,7 @@ export const AccountProvider = (props: AccountProviderProps) => {
     initProfilesFromAccount(null);
     await auth.signOut();
     contextDebug("signed out");
-    if (redirect) router.push("/");
+    if (redirect) router.push(process.env.LOGIN_PAGE!);
   };
 
   const getRelays = () => {
@@ -271,10 +271,10 @@ export const AccountProvider = (props: AccountProviderProps) => {
     // return to login page
     if (user == null) {
       const publicPath =
-        pathname == "/" ||
+        pathname == process.env.LOGIN_PAGE! ||
         pathname.startsWith("/njump/") ||
         pathname.startsWith("/e/");
-      if (!publicPath) router.push("/");
+      if (!publicPath) router.push(process.env.LOGIN_PAGE!);
     }
 
     dispatch({ type: "setLoading", loading: false });
@@ -328,7 +328,7 @@ export const AccountProvider = (props: AccountProviderProps) => {
 
     // go to home page
     if (user != null && pathname == "/") {
-      router.push("/profile");
+      router.push(process.env.USER_HOME_PAGE!);
     }
   };
 
