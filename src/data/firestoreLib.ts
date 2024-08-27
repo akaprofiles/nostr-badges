@@ -219,13 +219,13 @@ export const loadItem = async <Type>(
 
 // returns the most recent badge award for a badge
 export const loadBadgeAwardByBadge = async (
-  awardedTo: string,
+  publickey: string,
   badgeId: string
 ) => {
   const colRef = collection(db, "badgeawards");
   const q = query(
     colRef,
-    where("awardedTo", "==", awardedTo),
+    where("publickey", "==", publickey),
     where("badge", "==", badgeId),
     orderBy("created", "desc"),
     limit(1)

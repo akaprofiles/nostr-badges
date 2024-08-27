@@ -66,10 +66,10 @@ export const loadBadgeAward = async (
 };
 
 export const loadBadgeAwardByBadge = async (
-  awardedTo: string,
+  publickey: string,
   badgeId: string
 ) => {
-  return fsLoadBadgeAwardByBadge(awardedTo, badgeId);
+  return fsLoadBadgeAwardByBadge(publickey, badgeId);
 };
 
 export const saveBadgeAward = async (

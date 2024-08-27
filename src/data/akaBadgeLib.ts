@@ -53,7 +53,7 @@ export const loadAkaBadge = async <Type>(
 // loads all aka badges for given uid
 export const loadAkaBadgeAwards = async (
   category: string,
-  awardedTo: string
+  publickey: string
 ): Promise<{ badge: Badge; badgeAward: BadgeAward }[]> => {
   // load all akabadges for category
   const colRef = collection(db, "akabadges");
@@ -87,7 +87,7 @@ export const loadAkaBadgeAwards = async (
   for (let i = 0; i < akaBadges.length; i++) {
     const badgeId = akaBadges[i].id;
     badgePromises[badgeId] = loadBadge(badgeId);
-    awardPromises[badgeId] = loadBadgeAwardByBadge(awardedTo, badgeId);
+    awardPromises[badgeId] = loadBadgeAwardByBadge(publickey, badgeId);
   }
 
   // Wait for all badge promises to resolve

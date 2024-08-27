@@ -55,7 +55,10 @@ export default function ProfilePage() {
   };
 
   const fetchData = async () => {
-    const badgesWithAwards = await loadAkaBadgeAwards("social", profile.uid);
+    const badgesWithAwards = await loadAkaBadgeAwards(
+      "social",
+      profile.publickey
+    );
     setSocials(badgesWithAwards);
   };
 
