@@ -1,14 +1,22 @@
+import theme from "@/app/components/ThemeRegistry/theme";
+
 import React from "react";
 import { useState } from "react";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
+import Collapse from "@mui/material/Collapse";
 import Dialog from "@mui/material/Dialog";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 
 import { useAccountContext } from "@/context/AccountContext";
+import {
+  useNostrContext,
+  PublishedItem,
+  PublishCallback,
+} from "@/context/NostrContext";
 import { PrimaryButton } from "@/app/components/items/PrimaryButton";
 import { CopiableText } from "../components/items/CopiableText";
 
@@ -16,8 +24,13 @@ import getChannel from "@/google-api/getChannel";
 import { loadAkaBadge } from "@/data/akaBadgeLib";
 import { Platforms } from "@/data/socialMediaFields";
 import { loadBadge } from "@/data/badgeLib";
-import { SocialMediaFields } from "@/data/socialMediaFields";
-import { createBadgeAward } from "@/data/serverActions";
+import { getDefaultRelays } from "@/data/relays";
+import {
+  createBadgeAward,
+  createBadgeAwardEvent,
+  getRelays,
+} from "@/data/serverActions";
+import { NostrEvent } from "@nostr-dev-kit/ndk";
 
 const helperText = "e.g. https://www.youtube.com/@handle";
 
@@ -38,15 +51,23 @@ const AddYouTube: React.FC<AddYouTubeProps> = ({ npub, open, onClose }) => {
   const [channelUrl, setChannelUrl] = useState("");
   const [handle, setHandle] = useState("");
   const [error, setError] = useState(helperText);
-  const [verifyError, setVerifyError] = useState("");
   const [status, setStatus] = useState("");
 
+  // alert
+  const [showAlert, setShowAlert] = useState(false);
+  const [isSaveSuccess, setSaveSuccess] = useState<boolean>(false);
+  const [alertMesg, setAlertMesg] = useState<string>("");
+
+  const showError = (error: string) => {
+    setAlertMesg(error);
+    setSaveSuccess(false);
+    setShowAlert(true);
+  };
+
   const accountContext = useAccountContext();
+  const nostrContext = useNostrContext();
 
   const onChangeHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (verifyError != "") {
-      setVerifyError("");
-    }
     const value = event.currentTarget.value;
     setChannelUrl(value);
   };
@@ -68,6 +89,12 @@ const AddYouTube: React.FC<AddYouTubeProps> = ({ npub, open, onClose }) => {
     }
   };
 
+  const publishCallback: PublishCallback = (publishedItem: PublishedItem) => {
+    setStatus("published");
+    setIsVerifying(false);
+    onClose();
+  };
+
   const doVerify = async () => {
     if (handle == "") {
       return;
@@ -77,7 +104,7 @@ const AddYouTube: React.FC<AddYouTubeProps> = ({ npub, open, onClose }) => {
     setIsVerifying(true);
     const result = await getChannel(handle);
     if (!result.success) {
-      setVerifyError(result.error);
+      showError(result.error);
       setIsVerifying(false);
       return;
     }
@@ -85,22 +112,22 @@ const AddYouTube: React.FC<AddYouTubeProps> = ({ npub, open, onClose }) => {
     const fields = result.fields;
 
     if (!fields.description.includes(npub)) {
-      setVerifyError("npub text not found in description");
+      showError("npub text not found in description");
       setIsVerifying(false);
       return;
     }
 
-    setStatus("saving...");
+    setStatus("creating badge...");
     const youTubeBadge = await loadAkaBadge(Platforms.YouTube);
     if (youTubeBadge == undefined) {
-      setVerifyError("YouTube Channel Owner badge not found.");
+      showError("YouTube Channel Owner badge not found.");
       setIsVerifying(false);
       return;
     }
 
     const badge = await loadBadge(youTubeBadge.id);
     if (badge == undefined) {
-      setVerifyError("YouTube Channel Owner badge not found.");
+      showError("YouTube Channel Owner badge not found.");
       setIsVerifying(false);
       return;
     }
@@ -110,6 +137,7 @@ const AddYouTube: React.FC<AddYouTubeProps> = ({ npub, open, onClose }) => {
       fields.url = "https://www.youtube.com/" + fields.url;
     }
 
+    // createBadgeAward
     const id = `${youTubeBadge.id}-${handle}`;
     const createResult = await createBadgeAward(
       id,
@@ -119,11 +147,26 @@ const AddYouTube: React.FC<AddYouTubeProps> = ({ npub, open, onClose }) => {
       fields
     );
 
+    // publish events
+    setStatus("publishing event...");
     // to do: add createBadgeAward function to data/serverActions (like sessionCreateBadgeAwards)
     // create events like sessionContext.publishEvents();
 
+    const event = await createBadgeAwardEvent(id);
     console.log(`createBadgeAward result: ${createResult}`);
-    setIsVerifying(false);
+    console.log(`createBadgeAwardEvent result: ${JSON.stringify(event)}`);
+
+    // publish to badge owner's relays
+    let getRelaysResult = await getRelays(badge.uid);
+    let relays = getRelaysResult.relays;
+    if (getRelaysResult.defaultRelays) {
+      relays = relays.concat(getDefaultRelays());
+    }
+    nostrContext.publishWithCallback(
+      event as NostrEvent,
+      relays,
+      publishCallback
+    );
   };
 
   return (
@@ -133,7 +176,7 @@ const AddYouTube: React.FC<AddYouTubeProps> = ({ npub, open, onClose }) => {
           display: "flex",
           flexDirection: "column",
           maxWidth: "400px",
-          height: "460px",
+          height: "500px",
           rowGap: 2,
           pt: 3,
           pl: 4,
@@ -162,7 +205,7 @@ const AddYouTube: React.FC<AddYouTubeProps> = ({ npub, open, onClose }) => {
         </Box>
         <Box maxWidth="300px">
           <Typography variant="body1" paddingBottom={1}>
-            2. Add this text to the channel&aps;s description
+            2. Add this text to the channel&apos;s description
           </Typography>
           <CopiableText initValue={npub} variant="subtitle1"></CopiableText>
         </Box>
@@ -172,45 +215,69 @@ const AddYouTube: React.FC<AddYouTubeProps> = ({ npub, open, onClose }) => {
             3. Click Verify below once ready
           </Typography>
         </Box>
+        <Box>
+          <Collapse in={showAlert} sx={{ pt: 1, pb: 1 }}>
+            <Alert
+              severity={isSaveSuccess ? "success" : "error"}
+              onClose={() => {
+                setShowAlert(false);
+              }}
+              sx={{ minWidth: "100px", width: "fit-content" }}
+            >
+              {alertMesg}
+            </Alert>
+          </Collapse>
+          <Box
+            sx={{
+              display: "flex",
+              widows: "100%",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            {isVerifying && (
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <CircularProgress />
+                <Typography variant="subtitle1" fontStyle="italic">
+                  {status}
+                </Typography>
+              </Box>
+            )}
+
+            <PrimaryButton
+              buttonLabel="Verify"
+              disabledLabel={isVerifying ? "verifying..." : ""}
+              onClick={doVerify}
+            ></PrimaryButton>
+          </Box>
+        </Box>
         <Box
           sx={{
             display: "flex",
-            widows: "100%",
-            flexDirection: "column",
+            justifyContent: "space-evenly",
             alignItems: "center",
           }}
         >
-          {isVerifying && (
-            <>
-              <CircularProgress />
-              <Typography variant="subtitle1" fontStyle="italic">
-                {status}
-              </Typography>
-
-              <Button
-                onClick={() => {
-                  setIsVerifying(false);
-                }}
-              >
-                cancel
-              </Button>
-            </>
-          )}
-          {!isVerifying && (
-            <PrimaryButton
-              buttonLabel="Verify"
-              disabledLabel=""
-              onClick={doVerify}
-            ></PrimaryButton>
-          )}
+          <Button onClick={onClose}>
+            <Typography
+              variant="subtitle2"
+              align="center"
+              fontWeight="600"
+              sx={{
+                "&:hover": { color: { color: theme.palette.blue.dark } },
+              }}
+            >
+              CLOSE
+            </Typography>
+          </Button>
         </Box>
-        {verifyError != "" && (
-          <>
-            <Alert severity="error" sx={{ width: "100%" }}>
-              {verifyError}
-            </Alert>
-          </>
-        )}
       </Box>
     </Dialog>
   );

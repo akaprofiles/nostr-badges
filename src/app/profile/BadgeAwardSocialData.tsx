@@ -27,8 +27,8 @@ export const BadgeAwardSocialData = (props: { data: object }) => {
       const handle = socialFields.identity;
       const channel = await getChannel(handle);
 
-      if (channel.fields.avatar.url) {
-        setAvatarUrl(channel.fields.avatar.url);
+      if (channel.fields.avatar) {
+        setAvatarUrl(channel.fields.avatar);
       }
 
       if (channel.fields.url) {
@@ -56,7 +56,7 @@ export const BadgeAwardSocialData = (props: { data: object }) => {
         updateYouTube();
         break;
       default:
-        setAvatarUrl(socialFields.avatar.url);
+        setAvatarUrl(socialFields.avatar);
 
         metaItems.push(socialFields.identity);
         if (socialFields.followers > 0)
@@ -89,7 +89,7 @@ export const BadgeAwardSocialData = (props: { data: object }) => {
             alignItems: "center",
           }}
         >
-          {socialFields.avatar.url != "" && (
+          {socialFields.avatar != "" && (
             <CardMedia
               component="img"
               sx={{ width: height, height: height, objectFit: "cover" }}

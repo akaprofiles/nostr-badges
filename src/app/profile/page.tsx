@@ -51,14 +51,15 @@ export default function ProfilePage() {
 
   const onYouTubeClose = () => {
     setOpenYouTube(false);
+    fetchData();
+  };
+
+  const fetchData = async () => {
+    const badgesWithAwards = await loadAkaBadgeAwards("social", profile.uid);
+    setSocials(badgesWithAwards);
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      const badgesWithAwards = await loadAkaBadgeAwards("social", profile.uid);
-      setSocials(badgesWithAwards);
-    };
-
     if (profile.uid != "") {
       fetchData();
     }

@@ -1,6 +1,5 @@
 "use server";
 
-import { NostrEvent } from "@/data/ndk-lite";
 import { Badge } from "./badgeLib";
 import { Event } from "./eventLib";
 import { Session } from "./sessionLib";
@@ -284,7 +283,7 @@ export async function createBadgeAward(
   awardedTo: string,
   publickey: string,
   data?: object
-) {
+): Promise<string> {
   const url = `https://createBadgeAward-k5ca2jsy4q-uc.a.run.app/aka-profiles/us-central1/createBadgeAward`;
 
   const postData = {
@@ -302,10 +301,33 @@ export async function createBadgeAward(
     cache: "no-cache",
   });
 
+  const responseData = await response.json();
   if (!response.ok) {
     // This will activate the closest `error.js` Error Boundary
     throw new Error("Failed to post data");
   }
 
-  return true;
+  return responseData.id;
+}
+
+export async function createBadgeAwardEvent(id: string): Promise<object> {
+  const url = `https://createBadgeAwardEvent-k5ca2jsy4q-uc.a.run.app/aka-profiles/us-central1/createBadgeAwardEvent`;
+
+  const postData = {
+    id,
+  };
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: getAkaApiPostHeader(),
+    body: JSON.stringify(postData),
+    cache: "no-cache",
+  });
+
+  if (!response.ok) {
+    // This will activate the closest `error.js` Error Boundary
+    throw new Error("Failed to post data");
+  }
+
+  return await response.json();
 }

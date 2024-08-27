@@ -20,6 +20,18 @@ const getChannel = async (handle: string): Promise<GetChannelResult> => {
     fields: getEmptySocialMediaFields(),
   };
 
+  const toNumber = (value: any) => {
+    const valueType = typeof value;
+    switch (valueType) {
+      case "number":
+        return value;
+      case "string":
+        return Number(value);
+      default:
+        return 0;
+    }
+  };
+
   if (!handle || Array.isArray(handle)) {
     result.success = false;
     result.error = "handle not found in Channel URL";
@@ -47,12 +59,12 @@ const getChannel = async (handle: string): Promise<GetChannelResult> => {
     result.fields.title = snippet.title;
     result.fields.description = snippet.description as string;
     result.fields.url = snippet.customUrl;
-    result.fields.avatar = snippet.thumbnails.default;
+    result.fields.avatar = snippet.thumbnails.default.url;
 
     if (statistics) {
-      result.fields.followers = statistics.subscriberCount;
-      result.fields.items = statistics.videoCount;
-      result.fields.views = statistics.viewCount;
+      result.fields.followers = toNumber(statistics.subscriberCount);
+      result.fields.items = toNumber(statistics.videoCount);
+      result.fields.views = toNumber(statistics.viewCount);
     }
 
     console.log(snippet);

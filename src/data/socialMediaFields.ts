@@ -11,7 +11,7 @@ export type SocialMediaFields = {
   identity: string;
   title: string;
   description: string;
-  avatar: { height: number; width: number; url: string };
+  avatar: string;
   url: string;
   followers: number;
   following: number;
@@ -26,7 +26,7 @@ export const getEmptySocialMediaFields = () => {
     identity: "",
     title: "",
     description: "",
-    avatar: { height: 0, width: 0, url: "" },
+    avatar: "",
     url: "",
     followers: 0,
     following: 0,
