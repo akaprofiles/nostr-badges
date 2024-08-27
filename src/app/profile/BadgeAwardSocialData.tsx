@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
-import getChannel from "@/google-api/getChannel";
-import { Platforms, getEmptySocialMediaFields } from "@/data/socialMediaFields";
 
+import Image from "next/image";
 import Box from "@mui/material/Box";
-import CardMedia from "@mui/material/CardMedia";
 import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 
+import getChannel from "@/google-api/getChannel";
+import { Platforms, getEmptySocialMediaFields } from "@/data/socialMediaFields";
 import { abbreviateNum, DotSeparatedText } from "./DotSeperatedText";
 
 export const BadgeAwardSocialData = (props: { data: object }) => {
@@ -90,12 +90,7 @@ export const BadgeAwardSocialData = (props: { data: object }) => {
           }}
         >
           {socialFields.avatar != "" && (
-            <CardMedia
-              component="img"
-              sx={{ width: height, height: height, objectFit: "cover" }}
-              image={avatarUrl}
-              alt="avatar image"
-            />
+            <Image src={avatarUrl} alt="avatar image" width={48} height={48} />
           )}
         </Box>
 
