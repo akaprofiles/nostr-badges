@@ -24,7 +24,6 @@ import { useRouter, usePathname } from "next/navigation";
 
 import { useNostrContext } from "./NostrContext";
 import { getDefaultRelays } from "@/data/relays";
-import { updateDoc } from "firebase/firestore";
 
 const defaultRelays = getDefaultRelays();
 
